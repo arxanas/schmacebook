@@ -4,7 +4,7 @@ function username_check () {
 	$("r_username_txt").removeClass("ok");
 	if ($("#r_username_txt").val() != "") {
 		$("#r_username_txt").addClass("loading");
-		$.post("http://arxanas.com/schmacebook/ajax/php/register.php", {
+		$.post("./ajax/php/register.php", {
 			"mode": "username",
 			"param": $("#r_username_txt").val()
 		}, function(data, textstatus, xmlhttp){

@@ -27,8 +27,9 @@ require_once("./classes/user.php");
 						<?php require_once("./php/leftbar.php"); ?>
 					</td>
 					<td id="content_middle">
-						<form name="find_friends_form" id="find_friends_form" action="findfriends.php" method="post">
-							Type a friend&#39;s name: <input type="text" name="friend_name" id="friend_name" value="<?php echo isset($_POST["friend_name"]) && $_POST["friend_name"] ? unescape($_POST["friend_name"]) : ""; ?>"/> <input type="submit" class="btn" value="Search" />
+						<form id="find_friends_form" action="findfriends.php" method="post">
+							<p>Type a friend&#39;s name: <input type="text" name="friend_name" id="friend_name" value="<?php echo isset($_POST["friend_name"]) && $_POST["friend_name"] ? unescape($_POST["friend_name"]) : ""; ?>"/>
+							<input type="submit" class="btn" value="Search" /></p>
 						</form>
 						<div id="results">
 						

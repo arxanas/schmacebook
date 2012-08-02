@@ -17,7 +17,7 @@ function confirm_check() {
 			elementnotok("r_confirm_txt");
 		}
 		return false;
-	} else 
+	} else {
 		if ($("#r_password_txt").val() != $("#r_confirm_txt").val()) {
 			elementnotok("r_password_txt");
 			elementnotok("r_confirm_txt");
@@ -27,6 +27,7 @@ function confirm_check() {
 			elementok("r_confirm_txt");
 			return true;
 		}
+	}
 }
 
 function email_check() {

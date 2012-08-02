@@ -1,7 +1,7 @@
 <?php
 require_once("db.php");
 class User {
-	private $properties = array("id" => false, "loggedin" => false, "username" => false, "password" => false, "first_name" => false, "last_name" => false, "email" => false, "activated" => false, "profile_picture_url" => false, "date_joined" => false, "friends" => false, "friend_requests" => false);
+	private $properties = array("id" => false, "loggedin" => false, "username" => false, "password" => false, "first_name" => false, "last_name" => false, "email" => false, "activated" => false, "profile" => false, "profile_picture_url" => false, "date_joined" => false, "friends" => false, "friend_requests" => false, "email_on_friend_request" => false, "email_on_pm" => false, "admin" => false);
 	
 	// some constants that aren't actually constants, but that's too bad.
 	private $mail_working;
@@ -32,6 +32,10 @@ class User {
 		} else {
 			die("<strong>Fatal error:</strong> Property ".$var_name." does not exist!");
 		}
+	}
+	public function profile_picture_html ($user_id, $size=64) {
+		$properties = mysql_fetch_assoc(mysql_query("SELECT profile_picture_url, first_name, last_name FROM `users` WHERE id=".$user_id.";"));
+		return "<img src=\"".(($properties["profile_picture_url"]) ? $properties["profile_picture_url"] : $this->default_profile_picture_url)."\" alt=\"".$properties["first_name"]." ".$properties["last_name"]."\" width=\"".$size."\" height=\"".$size."\" />";
 	}
 	public function __set($var_name, $value){
 		if (method_exists(__CLASS__, $var_name)) {
@@ -96,10 +100,10 @@ class User {
 		return true;
 	}
 	public function logout () {
-		setcookie("username", " ", 1);
-		setcookie("password", " ", 1);
+		setcookie("username", "", 100);
+		setcookie("password", "", 100);
 	}
-	private function get_properties () {
+	public function get_properties () {
 		$properties = mysql_fetch_assoc(mysql_query("SELECT * FROM users WHERE username=\"".$this->properties["username"]."\";"));
 		foreach ($this->properties as $key => $value) {
 			switch ($key) {
@@ -114,28 +118,28 @@ class User {
 				// due to the fact that I didn't think of any other, more efficient way,
 				// friends are found by whether they're in either of the "friender_id"
 				// OR the "friendee_id" slot
-				$sql = mysql_query("SELECT * FROM friends WHERE friender_id=".$this->__get("id")." OR friendee_id=".$this->__get("id").";");
+				$sql = mysql_query("SELECT * FROM friends WHERE friender_id=".$this->properties["id"]." OR friendee_id=".$this->properties["id"].";");
 				$this->properties["friends"] = array();
 				for ($i=0; $i<mysql_num_rows($sql); $i++) {
 					// don't worry! the user id is set before the friends are found
-					if (mysql_result($sql, "friender_id") == $this->properties["id"]) {
+					if (mysql_result($sql, $i, "friender_id") == $this->properties["id"]) {
 						// if the friender is you, then you need the OTHER person - the friendee
-						array_push($this->properties["friends"], mysql_result($sql, "friendee_id"));
-					} else {
+						array_push($this->properties["friends"], mysql_result($sql, $i, "friendee_id"));
+					} else if (mysql_result($sql, $i, "friendee_id") == $this->properties["id"]) {
 						// if the friendee is you, then you need the friender
-						array_push($this->properties["friends"], mysql_result($sql, "friender_id"));
+						array_push($this->properties["friends"], mysql_result($sql, $i, "friender_id"));
 					}
 				}
 				break;
 			// friend requests work pretty much exactly the same
 			case "friend_requests":
-				$sql = mysql_query("SELECT * FROM friends WHERE friender_id=".$this->__get("id")." OR friendee_id=".$this->__get("id").";");
+				$sql = mysql_query("SELECT * FROM friend_requests WHERE friender_id=".$this->properties["id"]." OR friendee_id=".$this->properties["id"].";");
 				$this->properties["friend_requests"] = array();
 				for ($i=0; $i<mysql_num_rows($sql); $i++) {
-					if (mysql_result($sql, "friender_id") == $this->properties["id"]) {
-						array_push($this->properties["friend_requests"], mysql_result($sql, "friendee_id"));
-					} else {
-						array_push($this->properties["friend_requests"], mysql_result($sql, "friender_id"));
+					if (mysql_result($sql, $i, "friender_id") == $this->properties["id"]) {
+						array_push($this->properties["friend_requests"], mysql_result($sql, $i, "friendee_id"));
+					} else if (mysql_result($sql, $i, "friendee_id") == $this->properties["id"]) {
+						array_push($this->properties["friend_requests"], mysql_result($sql, $i, "friender_id"));
 					}
 				}
 				break;
@@ -143,6 +147,7 @@ class User {
 			//just pull everything else from the fetched row
 			default:
 				$this->properties[$key] = $properties[$key];
+				break;
 			}
 		}
 	}
@@ -153,6 +158,9 @@ class User {
 		// passwords are always md5'd
 		$property_values["password"] = md5($property_values["password"]);
 		
+		$property_values["first_name"] = htmlentities($property_values["first_name"]);
+		$property_values["last_name"] = htmlentities($property_values["last_name"]);
+		$property_values["email"] = htmlentities($property_values["email"]);
 		// creation of sql statement to create user
 		$sql = "INSERT INTO users (";
 		$column_names = "";
@@ -160,7 +168,10 @@ class User {
 		
 		if (!isset($property_values["activated"]))
 			$property_values["activated"] = 0;
-			
+		if (!isset($property_values["profile"]))
+			$property_values["profile"] = "";
+		if (!isset($property_values["profile_picture_url"]))
+			$property_values["profile_picture_url"] = $this->default_profile_picture_url;
 		foreach ($property_values as $key => $value) {
 			//don't want these values
 			if ($key != "confirm" && $key != "date_joined" && $key != "id" && $key != "activated") {
@@ -191,7 +202,7 @@ class User {
 		if ($this->mail_working) {
 			//send activation email!
 			$to = $property_values["email"];
-			$from = "no-reply@sch.arxanas.com";
+			$from = "no-reply@schmacebook.net";
 			$subject = "Registration at Schmacebook";
 			$message = "<html><head><title>Activate at Schmacebook</title></head><body>"."<strong>Do not reply to this automatically-generated email!</strong><br />"."Welcome to Schmacebook, ".unescape($property_values["first_name"])."! To get started, just <a href=\"".$activation_url."\">click here!</a><br /><br />If the link is not working, try manually typing this link into your browser address bar: ".$activation_url."</body></html>";
 			$headers  = 'MIME-Version: 1.0' . "\r\n";

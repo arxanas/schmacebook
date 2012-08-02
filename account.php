@@ -25,23 +25,27 @@ if (!$user->loggedin) {
 		$input = false;
 	}
 	if ($_POST["first_name_txt"]) {
-		$user->first_name = escape($_POST["first_name_txt"]);
+		$user->first_name = escape(htmlentities($_POST["first_name_txt"]));
 		$input = true;
 	}
 	if ($_POST["last_name_txt"]) {
-		$user->last_name = escape($_POST["last_name_txt"]);
+		$user->last_name = escape(htmlentities($_POST["last_name_txt"]));
 		$input = true;
 	}
 	if ($_POST["email_txt"]) {
 		if (!preg_match("/^[A-Za-z0-9._%-]+@([A-Za-z0-9._%-]+\.)+[A-Za-z]{2,4}$/", $_POST["email_txt"])) {
 			array_push($errors, "Email is not valid.");
 		} else {
-			$user->email = escape($_POST["email_txt"]);
+			$user->email = escape(htmlentities($_POST["email_txt"]));
 		}
 		$input = true;
 	}
-	if((!empty($_FILES["profile_picture_file"])) && ($_FILES["profile_picture_file"]["error"] == 0)) {
-		//no real mime type getter available :(
+	if (isset($_POST["remove_profile_picture"])) {
+		$user->profile_picture_url = $user->default_profile_picture_url;
+		if ($user->profile_picture_url != $user->default_profile_picture_url)
+			unlink($user->profile_picture_url);
+	} else if((!empty($_FILES["profile_picture_file"])) && ($_FILES["profile_picture_file"]["error"] == 0)) {
+		// no real mime type getter available :(
 		if (stristr($_FILES["profile_picture_file"]["type"], "image")) {
 			$target_path = "./profile_pictures/images/";
 			$extension = explode(".", $_FILES["profile_picture_file"]["name"]);
@@ -49,11 +53,19 @@ if (!$user->loggedin) {
 			$allowed_extensions = array("bmp", "jpg", "jpeg", "gif", "png");
 			if (in_array($extension, $allowed_extensions)) {
 				$target_path = $target_path.md5($user->username).".".$extension;
+				if ($user->profile_picture_url != $user->default_profile_picture_url)
+					unlink($user->profile_picture_url);
 				$user->profile_picture_url = $target_path;
-				move_uploaded_file($_FILES["profile_picture_file"]["tmp_name"], $target_path);
+				move_uploaded_file($_FILES["profile_picture_file"]["tmp_name"], $target_path) || array_push($errors, "File could not be saved; please try again.");;
+			} else {
+				array_push($errors, "Picture type not recognized!");
 			}
 		}
 		$input = true;
+	}
+	if (isset($_POST["email_notifications"])) {
+		$user->email_on_friend_request = isset($_POST["email_on_friend_request"]) ? 1 : 0;
+		$user->email_on_pm = isset($_POST["email_on_pm"]) ? 1 : 0;
 	}
 	if ($errors) {
 		$error_message = "<span class='red'>The following errors occurred:</span><br /><ul>";
@@ -93,26 +105,36 @@ if (!$user->loggedin) {
 				<td id="content_middle">
 						<strong>Account Settings</strong><span id="logout"><a href="logout.php">Log out</a></span><hr />
 						<?php echo $error_message; ?>
-						<object><form enctype="multipart/form-data" action="account.php" method="post">
-							<strong>Name:</strong> <input type="text" name="first_name_txt" id="first_name_txt" value="<?php echo $user->first_name ?>" /> <input type="text" name="last_name_txt" id="last_name_txt" value="<?php echo $user->last_name ?>" /><br /><br />
-							<strong>Email:</strong> <input type="text" name="email_txt" id="email_txt" value="<?php echo $user->email; ?>" /><br /><br />
-							<strong>Change Password</strong><br />
-							<table>
-								<tr><td>Old password:</td><td><input type="password" name="old_password_txt" id="old_password_txt"/></td></tr>
-								<tr><td>New password:</td><td><input type="password" name="new_password_txt" id="new_password_txt"/></td></tr>
-								<tr><td>Confirm:</td><td><input type="password" name="confirm_txt" id="confirm_txt"/></td></tr>
-							</table><br /><br />
-							<strong>Profile Picture</strong>
-							<table>
-								<tr>
-									<td><img src="<?php echo ($user->profile_picture_url); ?>" alt="<?php echo $user->first_name; ?>'s Profile Picture" height="64" width="64" /></td>
-									<td><input type="hidden" name="MAX_FILE_SIZE" value="102400" /><input name="profile_picture_file" id="profile_picture_file" type="file" /></td>
-								</tr>
-							</table>
-							<div id="save_changes_btn">
-								<input type="submit" class="btn" value="Save Changes" />
-							</div>
-						</form></object>
+						<form enctype="multipart/form-data" action="account.php" method="post">
+							<p>
+								<strong>Name:</strong> <input type="text" name="first_name_txt" id="first_name_txt" value="<?php echo $user->first_name ?>" /> <input type="text" name="last_name_txt" id="last_name_txt" value="<?php echo $user->last_name ?>" /><br /><br />
+								<strong>Email:</strong> <input type="text" name="email_txt" id="email_txt" value="<?php echo $user->email; ?>" /><br /><br />
+								<strong>Change Password</strong><br />
+								<object>
+									<table>
+										<tr><td>Old password:</td><td><input type="password" name="old_password_txt" id="old_password_txt"/></td></tr>
+										<tr><td>New password:</td><td><input type="password" name="new_password_txt" id="new_password_txt"/></td></tr>
+										<tr><td>Confirm:</td><td><input type="password" name="confirm_txt" id="confirm_txt"/></td></tr>
+									</table>
+								</object><br /><br />
+								<strong>Email Notifications</strong> (don't work with k12.spsd.net addresses!)<br />
+								<input type="hidden" name="email_notifications" value="email_notifications" />
+								<input type="checkbox" value="email_on_friend_request" name="email_on_friend_request" id="email_on_friend_request" <?php if ($user->email_on_friend_request == 1) echo "checked=\"checked\""; ?> /><label for="email_on_friend_request"> Email when you get a friend request</label><br />
+								<input type="checkbox" value="email_on_pm" name="email_on_pm" id="email_on_pm" <?php if ($user->email_on_pm == 1) echo "checked=\"checked\""; ?> /><label for="email_on_pm"> Email when you get a PM</label><br /><br />
+								<strong>Profile Picture</strong>
+								<table>
+									<tr>
+										<td><img src="<?php echo ($user->profile_picture_url); ?>" alt="<?php echo $user->first_name; ?>'s Profile Picture" height="64" width="64" /></td>
+										<td><input type="hidden" name="MAX_FILE_SIZE" value="102400" /><input name="profile_picture_file" id="profile_picture_file" type="file" /><br />
+										<input type="checkbox" value="remove_profile_picture" name="remove_profile_picture" />Remove Profile Picture<br />
+										There is some sort of restriction on your picture upload that I can&#39;t control; if it fails, try a smaller picture.</td>
+									</tr>
+								</table>
+								<div id="save_changes_btn">
+									<input type="submit" class="btn" value="Save Changes" />
+								</div>
+							</p>
+						</form>
 				</td>
 				<td><?php require_once("./php/rightbar.php"); ?></td>
 			</tr>

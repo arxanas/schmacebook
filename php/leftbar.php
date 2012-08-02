@@ -1,16 +1,20 @@
+<script type="text/javascript" src="./ajax/js/leftbar.js"></script>
+</script>
 <div id="content_left">
-		<a href="findfriends.php">Find friends</a>	
+		<a href="findfriends.php">Find friends</a><br />
 		<?php
 		$sql = mysql_query("SELECT * FROM friend_requests WHERE friendee_id=".$user->id);
 		if (mysql_num_rows($sql)) {
-			echo "<hr />Requests (".mysql_num_rows($sql).")<br /><table>";
+			echo "<hr /><span id='request_container'>Requests (<span id='request_count'>".mysql_num_rows($sql)."</span>)</span><br /><table>";
 			for ($i=0; $i<mysql_num_rows($sql); $i++) {
 				$altuser = mysql_fetch_assoc($sql);
-				$altuser = mysql_fetch_assoc(mysql_query("SELECT first_name, last_name, profile_picture_url FROM users WHERE id=\"".$altuser["friender_id"]."\";"));
-				echo "<tr id=\"friend_request_row_".$altuser["friender_id"]."\"><td><img width=\"64\" height=\"64\" src=\"".($altuser["profile_picture_url"] ? $altuser["profile_picture_url"] : $user->default_profile_picture_url)."\" alt=\"".$altuser["first_name"]." ".$altuser["last_name"]."\" /></td>";
-				echo "<td><strong>".$altuser["first_name"]." ".$altuser["last_name"]."</strong><br /><span id=\"friend_request_".$altuser["id"]."\"><a class=\"green_link\" href=\"#\">Accept</a><br /><a class=\"red_link\" href=\"#\">Deny</a></span></td></tr>";
+				$name = mysql_result(mysql_query("SELECT CONCAT(first_name, ' ', last_name) FROM `users` WHERE id=".$altuser["friender_id"].";"), 0, 0);
+				echo "<tr id=\"friend_request_row_".$altuser["friender_id"]."\"><td>".$user->profile_picture_html($altuser["friender_id"])."</td>";
+				echo "<td><strong>".$name."</strong><br /><span id=\"friend_request_".$altuser["friender_id"]."\"><a class=\"green_link\" href=\"javascript: accept_request(".$altuser["friender_id"].");\">Accept</a><br /><a class=\"red_link\" href=\"javascript: deny_request(".$altuser["friender_id"].");\">Deny</a></span></td></tr>";
 			}
 			echo "</table>";
+		} else {
+			echo "No friend requests at this time.";
 		}
 		?>				
 </div>

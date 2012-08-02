@@ -1,78 +1,103 @@
 body {
 	font-family: arial, helvetica, sans-serif;
-	font-size: 12pt;
 	margin: 0px;
 	padding: 0px;
 }
-div {
+
+hr {
+	height: 1px;
+	color: #000000;
+	background-color: #000000;
+}
+
+div, p {
 	margin: 0px;
 	padding: 0px;
 }
-p {
-	margin: 0px;
+
+textarea {
+	font-family: monospace;
 }
+
 a {
 	text-decoration: none;
 }
+
 a:link, a:visited {
 	color: #0000EE;
 }
+
 a.red_link {
 	color: #FF0000;
 }
+
 a.green_link {
 	color: #00BB00;
 }
+
 a:hover, a:active {
 	text-decoration: underline;
 }
+
 #header_bar {
 	position: relative;
 	width: 100%;
-	height: 25px;
+	height: 2em;
 	top: 0px;
 	left: 0px;
 	margin-left: 0px;
 	margin-right: 0px;
-	padding-top: 5px;
+	padding-top: 0px;
 	background-color: #6A86BD;
 	color: #FFFFFF;
 	border-style: none none solid none;
 	border-width: 1px;
 	border-color: #000000;
 }
+
 #header_content {
 	width: 850px;
 	margin-left: auto;
 	margin-right: auto;
 }
+
 #header_left {
 	float: left;
+	padding: .45em 6px;
 }
+
+#header_right, #nav {
+	float: right;
+}
+
 #header_right {
-	float: right;
+	padding: .45em 6px;
 }
-#header_right ul {
+
+#nav ul {
 	list-style: none;
-	margin: 0px;
 	padding: 0px;
-}
-#header_right li {
-	float: right;
-	padding: 0px 4px 0px 4px;
 	margin: 0px;
 }
-#header_right li:hover {
-	background-color: #7B97CE;
-	height: 25px;
+
+#nav li {
+	float: right;
+	padding: .45em 6px;
 }
-#header_right li a {
+
+#nav li:hover {
+	background-color: #7B97CE;
+}
+
+#nav li a {
 	color: #FFFFFF;
 	text-decoration: none;
 }
+
 #content {
 	position: relative;
 	width: 800px;
+	max-width: 800px;
 	height: 100%;
 	margin-left: auto;
 	margin-right: auto;
@@ -89,41 +114,82 @@ a:hover, a:active {
 	border-bottom-right-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
+
 #inner_content {
 	width: 790px;
+	max-width: 790px;
 	margin-left: auto;
 	margin-right: auto;
 }
+
 #inner_content * td {
 	vertical-align: top;
 }
+
 #content_left {
+	position: relative;
 	width: 175px;
 	margin-top: 0px;
 	top: 0px;
 	padding: 5px 2.5px 5px 2.5px;
-	position: relative;
+	max-width: 185px;
 }
+
 #content_middle {
 	position: relative;
-	width:  440px;
+	width: 440px;
 	border-style: none solid none solid;
 	border-color: #000000;
 	border-width: 1px;
 	padding: 5px 4.5px 5px 2.5px;
+	max-width: 420px;
 }
+
 #content_right {
 	position: relative;
-	width: 175px;
+	width: 185px;
 	margin-top: 0px;
 	top: 0px;
 	padding: 5px 2.5px 5px 2.5px;
 }
-#status_txt {
-	width: 98.5%;
-	font-family: monospace;
+
+#posts, #pms {
+	background-color: #E9EFFB;
+	display: block;
+	width: 100%;
+	max-width: 440px;
 }
 
+#posts * tr, #pms * tr {
+	max-width: 440px;
+}
+
+#posts * td:nth-child(2), #pms * td:nth-child(2) {
+	text-align: left;
+	width: 340px;
+	max-width: 340px;
+	overflow: auto;
+}
+#footer {
+	width: auto;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 5px;
+	text-align: center;
+}
+.comment {
+	position: relative;
+	text-align: left;
+	font-size: 10pt;
+	background-color: #D8DEEA;
+	max-width: 440px;
+}
+.read-pm {
+	position: relative;
+	text-align: left;
+	background-color: #D8DEEA;
+	width: 100%;
+}
 .icon_txt {
 	padding-right: 16px;
 }
@@ -144,9 +210,33 @@ a:hover, a:active {
 .red {
 	color: #FF0000;
 }
+.gray {
+	display: block;
+	color: #999999;
+	max-width: 440px;
+}
+.hr-white {
+	color: #FFFFFF;
+	background-color: #FFFFFF;
+}
+.left {
+	position: relative;
+	float: left;
+	text-align: left;
+}
+.text-left {
+	position: relative;
+	text-align: left;
+	font-size: 10pt;
+}
 .right {
 	position: relative;
 	float: right;
+	text-align: right;
+}
+.text-right {
+	position: relative;
+	text-align: right;
 }
 .ok {
 	background-image: url("http://arxanas.com/schmacebook/images/accept.png");
@@ -162,4 +252,22 @@ a:hover, a:active {
 	background-image: url("http://arxanas.com/schmacebook/images/loading.gif");
 	background-repeat: no-repeat;
 	background-position: right center;
+}
+.centered {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	width: auto;
+}
+.delete {
+	display: block;
+	background-image: url("./images/delete.png");
+	width: 15px;
+	height: 15px;
+	float: right;
+	top: 0px;
+	right: 0px;
+}
+.delete:hover {
+	background-image: url("./images/delete-hover.png");
 }
